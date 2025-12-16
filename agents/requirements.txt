@@ -1,0 +1,13 @@
+smolagents
+anthropic
+requests
+geopy
+networkx
+uvicorn
+fastapi
+redis
+asyncpg
+black
+isort
+pytest
+python-dotenv
