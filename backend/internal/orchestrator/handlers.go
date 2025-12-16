@@ -2,6 +2,8 @@ package orchestrator
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 )
 
 func (o *Orchestrator) handleHighRiskEvent(ctx context.Context, event map[string]interface{}) {
@@ -56,15 +58,27 @@ func (o *Orchestrator) handleHighRiskEvent(ctx context.Context, event map[string
 
 func (o *Orchestrator) delegateToRoutePlanner(ctx context.Context, shipmentID string, reasonData map[string]interface{}) {
 	// Publish task to Route Planner Queue
-	// This would be consumed by the Python Route Planner Agent (Week 6)
 	task := map[string]interface{}{
 		"task_type": "PLAN_NEW_ROUTE",
 		"shipment_id": shipmentID,
 		"reason": reasonData,
+		"created_at": time.Now().Format(time.RFC3339),
 	}
 	
-	// In reality we marshal this and push to "res:queue:route_planner" or similar
-	o.logger.Info("Stub: Pushing task to Route Planner queue", "task", task)
+	payload, err := json.Marshal(task)
+	if err != nil {
+		o.logger.Error("Failed to marshal task payload", "error", err)
+		return
+	}
+
+	queueName := "agent:task:route_planner"
+	err = o.redis.RPush(ctx, queueName, payload).Err()
+	if err != nil {
+		o.logger.Error("Failed to push task to Redis", "queue", queueName, "error", err)
+		return
+	}
+	
+	o.logger.Info("Delegated task to Route Planner", "queue", queueName, "shipment_id", shipmentID)
 }
 
 func (o *Orchestrator) handleWeatherAlert(ctx context.Context, event map[string]interface{}) {

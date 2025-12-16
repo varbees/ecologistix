@@ -1,6 +1,6 @@
 # EcoLogistix Architecture Status
 
-- **Current Phase**: Phase 2 - Carbon Audit & RAG (Week 7)
+- **Current Phase**: Phase 2 - Full Integration (Week 8)
 - **Status**: 🟢 On Track
 
 ## 1. System Overview
