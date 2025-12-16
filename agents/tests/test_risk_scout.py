@@ -12,7 +12,7 @@ async def test_run_analysis_flow():
     # Mock dependencies
     with patch("risk_scout.ShipmentDB") as MockDB, \
          patch("risk_scout.CodeAgent") as MockAgent, \
-         patch("risk_scout.ApiModel") as MockModel:
+         patch("risk_scout.InferenceClientModel") as MockModel:
              
         # Setup mocks
         mock_db_instance = MockDB.return_value

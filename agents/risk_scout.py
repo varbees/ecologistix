@@ -8,7 +8,7 @@ import re
 from typing import Dict, Any, Optional
 
 from dotenv import load_dotenv
-from smolagents import CodeAgent, ApiModel
+from smolagents import CodeAgent, InferenceClientModel
 from utils.logger import get_logger
 from db import ShipmentDB
 from tools import WeatherTool, CarbonTool, ShippingTool
@@ -34,7 +34,7 @@ class RiskScout:
         # Using HfApiModel. If HF_API_KEY is not set, this might fail unless using a public endpoint or local.
         # Assuming user has HF key from .env check earlier.
         model_id = os.getenv("RISK_SCOUT_MODEL", "mistralai/Mistral-Nemo-12B-Instruct-2407")
-        self.model = ApiModel(model_id=model_id)
+        self.model = InferenceClientModel(model_id=model_id)
         
         self.agent = CodeAgent(
             tools=self.tools,
