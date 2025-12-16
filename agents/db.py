@@ -71,3 +71,29 @@ class ShipmentDB:
             )
         finally:
             await conn.close()
+
+    async def save_route_alternatives(self, shipment_id: str, alternatives_json: Any):
+        """Save generated route alternatives to history"""
+        conn = await asyncpg.connect(self.dsn)
+        try:
+            # For this Phase, we store the raw JSON in 'reason_for_change' or 'alternative_route' logic
+            # The schema has 'alternative_route' as Geometry.
+            # To keep it simple for Week 6 MVP, we'll store the full analysis in 'reason_for_change' text field 
+            # or ideally expand schema. But 'reason_for_change' is TEXT.
+            # Let's stringify the JSON into 'reason_for_change' for now as a log.
+            
+            # Convert to string if dict
+            if not isinstance(alternatives_json, str):
+                import json
+                alternatives_json = json.dumps(alternatives_json)
+                
+            await conn.execute("""
+                INSERT INTO route_history (
+                    id, shipment_id, reason_for_change, approved_by, created_at
+                ) VALUES (
+                    gen_random_uuid(), $1, $2, 'ROUTE_PLANNER', NOW()
+                )
+            """, shipment_id, alternatives_json)
+            
+        finally:
+            await conn.close()
