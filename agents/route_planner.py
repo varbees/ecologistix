@@ -133,6 +133,20 @@ class RoutePlanner:
             
             # Save to DB
             await self.db.save_route_alternatives(shipment_id, result)
+
+            # Week 8 Integrated Flow: Trigger Carbon Auditor
+            # Prepare task for Carbon Auditor
+            if isinstance(result, dict) and "options" in result:
+                audit_task = {
+                    "task_type": "CARBON_AUDIT",
+                    "shipment_id": shipmentID, # Wait, shipment_id var name is task.get("shipment_id")
+                    "route_options": result["options"]
+                }
+                # Fix variable scope
+                audit_task["shipment_id"] = shipment_id 
+                
+                self.redis_client.rpush("agent:task:carbon_audit", json.dumps(audit_task))
+                logger.info("Chained task: Pushed to Carbon Auditor queue")
             
         except Exception as e:
             logger.error(f"Agent failed to plan route: {e}")
