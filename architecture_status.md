@@ -1,7 +1,7 @@
 # EcoLogistix Architecture Status
 
-**Current Phase**: Phase 1 - Foundation (Week 4)
-**Status**: 🏗️ Scaffolding & Infrastructure
+- **Current Phase**: Phase 2 - Orchestration (Week 5)
+- **Status**: 🟢 On Track
 
 ## 1. System Overview
 EcoLogistix is an Event-Driven Multi-Agent System (ED-MAS) for supply chain resilience.
