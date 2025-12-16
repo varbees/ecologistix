@@ -1,6 +1,6 @@
 # EcoLogistix Architecture Status
 
-- **Current Phase**: Phase 2 - Route Planning (Week 6)
+- **Current Phase**: Phase 2 - Carbon Audit & RAG (Week 7)
 - **Status**: 🟢 On Track
 
 ## 1. System Overview
