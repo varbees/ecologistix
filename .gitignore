@@ -38,4 +38,5 @@ pgdata/
 redisdata/
 
 # Docs
-/docsagents/.venv
+/docs
+agents/.venv
