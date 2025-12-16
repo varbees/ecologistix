@@ -1,6 +1,6 @@
 # EcoLogistix Architecture Status
 
-**Current Phase**: Phase 1 - Foundation (Week 2)
+**Current Phase**: Phase 1 - Foundation (Week 4)
 **Status**: 🏗️ Scaffolding & Infrastructure
 
 ## 1. System Overview
@@ -17,8 +17,9 @@ EcoLogistix is an Event-Driven Multi-Agent System (ED-MAS) for supply chain resi
 | **Infrastructure** | ✅ | Docker Compose | Postgres 16, Redis 7 ready |
 | **Backend Core** | 🚧 | Go 1.22+ | Module init, basic structure |
 | **Ingestion Svc** | 🟢 | Go | AIS, Weather, News implemented |
-| **Risk Agent** | 🚧 | Python | Skeleton created |
-| **Route Agent** | 🔴 | Python | Planned for Week 3 |
+| **Risk Agent** | 🟢 | Python | Helper logic + DB integration implemented |
+| **Agent Tools** | 🟢 | Python | Weather, Carbon, Shipping implemented |
+| **Data Models** | 🟢 | Pydantic | DB Schema mirrors implemented |
 | **Frontend** | 🚧 | Next.js | Initializing... |
 
 ## 3. Data Pipelines
