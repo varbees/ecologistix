@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/driftr/ecologistix/backend/internal/ingestion"
 	"github.com/driftr/ecologistix/backend/internal/logger"
@@ -40,6 +42,19 @@ func main() {
 	// Start AIS Listener in goroutine
 	go aisListener.Listen(ctx)
 
-	// Initial check to keep main alive (Production would use signal handling)
-	select {}
+	// Graceful shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	<-sigChan
+	logger.Info("Shutdown signal received")
+	cancel() // Cancel context to stop listeners
+
+	// Give components time to cleanup if needed (e.g. close Redis connections)
+	// In production, use a timeout with context
+	if err := redisClient.Close(); err != nil {
+		logger.Error("Failed to close Redis client", "error", err)
+	}
+	
+	logger.Info("Ingestion Service Stopped")
 }
