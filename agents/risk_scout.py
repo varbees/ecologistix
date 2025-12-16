@@ -63,7 +63,7 @@ Return ONLY a valid JSON object with this format:
 }
 """
 
-    async def scan_shipment(self, shipment: Dict[str, Any]):
+    async def scan_shipment(self, shipment: Dict[str, Any], r_client):
         """Analyze a single shipment"""
         logger.info(f"Scanning shipment {shipment.get('id')} ({shipment.get('vessel_name')})")
         
@@ -80,21 +80,33 @@ Analyze this shipment:
 
 Use the 'fetch_weather' tool if you need weather data.
 """
-        # Run agent (blocking call, run in executor if needed, but for now simple sync call inside async loop is okay for low volume)
-        # CodeAgent.run is synchronous.
         try:
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(None, self.agent.run, prompt)
             
             parsed = self._parse_output(result)
             if parsed:
-                logger.info(f"Risk assessment for {shipment.get('vessel_name')}: {parsed['risk_score']} ({parsed['recommended_action']})")
+                risk_score = parsed['risk_score']
+                logger.info(f"Risk assessment for {shipment.get('vessel_name')}: {risk_score} ({parsed['recommended_action']})")
                 
                 await self.db.update_shipment_risk(
                     shipment['id'], 
-                    parsed['risk_score'], 
+                    risk_score, 
                     parsed.get('risk_factors', [])
                 )
+                
+                # INTEGRATION HOOK: If High Risk, trigger Orchestrator
+                if risk_score > 0.7:
+                     event = {
+                        "event_type": "HIGH_RISK_DETECTED",
+                        "shipment_id": shipment['id'],
+                        "risk_score": risk_score,
+                        "risk_factors": parsed.get('risk_factors', []),
+                        "detected_at": time.strftime("%Y-%m-%dT%H:%M:%SZ")
+                     }
+                     r_client.lpush("event:queue:high_priority", json.dumps(event))
+                     logger.warning(f"HIGH RISK EVENT TRIGGERED for {shipment.get('vessel_name')}")
+
             else:
                 logger.warning(f"Failed to parse agent output for {shipment.get('id')}")
 
@@ -118,6 +130,9 @@ Use the 'fetch_weather' tool if you need weather data.
 
     async def run(self):
         logger.info("Risk Scout Loop Starting...")
+        import redis
+        r = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=int(os.getenv("REDIS_PORT", 6379)), decode_responses=True)
+        
         while running:
             try:
                 shipments = await self.db.get_active_shipments()
@@ -128,10 +143,13 @@ Use the 'fetch_weather' tool if you need weather data.
                 
                 for shipment in shipments:
                     if not running: break
-                    await self.scan_shipment(shipment)
-                    await asyncio.sleep(5) # Rate limit between shipments
+                    
+                    # Store previous risk score (optional optimization, skip if already high? Na, re-evaluate)
+                    # For MVP, scan everyone.
+                    
+                    await self.scan_shipment(shipment, r)
+                    await asyncio.sleep(2) # Rate limit
                 
-                # Sleep between cycles
                 await asyncio.sleep(30)
                 
             except Exception as e:

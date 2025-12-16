@@ -101,12 +101,13 @@ class CarbonAuditor:
         3. Recommend the most sustainable compliant route.
         
         Output JSON:
-        {{
+        {
             "audit_id": "AUDIT_1",
-            "compliant": true,
+            "compliance_status": "COMPLIANT", // or NON_COMPLIANT
+            "total_emissions_kg": 15000.5,
             "recommended_route": "Route Name",
             "details": "..."
-        }}
+        }
         """
         
         try:
@@ -115,8 +116,18 @@ class CarbonAuditor:
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(None, self.agent.run, prompt)
             
-            logger.info(f"Audit Result: {result}")
+            logger.info(f"Audit Result (Raw): {result}")
             
+            # Simple parsing if string
+            if isinstance(result, str):
+                try:
+                    import re
+                    match = re.search(r'\{.*\}', result, re.DOTALL)
+                    if match:
+                        result = json.loads(match.group())
+                except:
+                    pass
+
             # Save to Audit Reports DB
             await self.save_audit_report(shipment_id, result)
             
@@ -126,17 +137,24 @@ class CarbonAuditor:
     async def save_audit_report(self, shipment_id: str, report: Any):
         conn = await asyncpg.connect(self.db.dsn)
         try:
-            # Parse report if string
-            if isinstance(report, str):
-                # Try simple storage or JSON parse
-                 audit_details_json = json.dumps({"raw_output": report})
+            compliance = "UNKNOWN"
+            emissions = 0.0
+            
+            if isinstance(report, dict):
+                compliance = report.get("compliance_status", "UNKNOWN")
+                # Handle boolean old format if present
+                if report.get("compliant") is True: compliance = "COMPLIANT"
+                elif report.get("compliant") is False: compliance = "NON_COMPLIANT"
+                
+                emissions = float(report.get("total_emissions_kg", 0.0))
+                audit_details_json = json.dumps(report)
             else:
-                 audit_details_json = json.dumps(report)
+                 audit_details_json = json.dumps({"raw_output": str(report)})
                  
             await conn.execute("""
-                INSERT INTO audit_reports (shipment_id, audit_details)
-                VALUES ($1, $2)
-            """, shipment_id, audit_details_json)
+                INSERT INTO audit_reports (shipment_id, total_emissions_kg, compliance_status, audit_details)
+                VALUES ($1, $2, $3, $4)
+            """, shipment_id, emissions, compliance, audit_details_json)
         finally:
             await conn.close()
 

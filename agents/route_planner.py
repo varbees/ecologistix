@@ -139,7 +139,7 @@ class RoutePlanner:
             if isinstance(result, dict) and "options" in result:
                 audit_task = {
                     "task_type": "CARBON_AUDIT",
-                    "shipment_id": shipmentID, # Wait, shipment_id var name is task.get("shipment_id")
+                    "shipment_id": shipment_id, # Wait, shipment_id var name is task.get("shipment_id")
                     "route_options": result["options"]
                 }
                 # Fix variable scope
