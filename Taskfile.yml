@@ -1,0 +1,72 @@
+version: '3'
+
+tasks:
+  default:
+    desc: List all commands
+    cmds:
+      - task --list
+
+  # --- Setup & Install ---
+  setup:
+    desc: Install dependencies for all services
+    cmds:
+      - cmd: cd backend && go mod download
+      - cmd: cd frontend && bun install
+      - cmd: cd agents && pip install -r requirements.txt
+      - echo "✅ Setup complete!"
+
+  # --- Development ---
+  dev:
+    desc: Run the full stack locally (Parallel)
+    cmds:
+      - task: up
+      - task: run-all
+
+  run-all:
+    deps: [dev:backend, dev:agents, dev:frontend]
+
+  dev:backend:
+    desc: Run the Ingestion service
+    dir: backend
+    cmd: go run cmd/ingestion/main.go
+    prefix: "[GO-BACKEND]"
+
+  dev:agents:
+    desc: Run the Risk Scout agent
+    dir: agents
+    # Running the risk scout directly for now
+    cmd: python risk_scout.py
+    prefix: "[AI-AGENTS]"
+
+  dev:frontend:
+    desc: Run the Next.js frontend
+    dir: frontend
+    cmd: bun run dev
+    prefix: "[NEXT-JS]"
+
+  # --- Infrastructure ---
+  up:
+    desc: Start Docker containers (Postgres, Redis)
+    cmd: docker compose up -d
+
+  down:
+    desc: Stop all containers
+    cmd: docker compose down
+
+  db:shell:
+    desc: Connect to Postgres shell
+    cmd: docker compose exec db psql -U postgres -d ecologistix
+
+  # --- Quality ---
+  lint:
+    desc: Lint code across stack
+    cmds:
+      - cd backend && golangci-lint run
+      - cd agents && pylint .
+      - cd frontend && bun run lint
+
+  test:
+    desc: Run tests
+    cmds:
+      - cd backend && go test ./...
+      - cd agents && pytest
