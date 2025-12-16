@@ -31,9 +31,8 @@ class RiskScout:
         
         # Configure Model
         # Roadmap suggested mistralai/Mistral-Nemo-12B-Instruct-2407
-        # Using HfApiModel. If HF_API_KEY is not set, this might fail unless using a public endpoint or local.
-        # Assuming user has HF key from .env check earlier.
-        model_id = os.getenv("RISK_SCOUT_MODEL", "mistralai/Mistral-Nemo-12B-Instruct-2407")
+        # Using Qwen 2.5 Coder as it is free and powerful on HF Inference API
+        model_id = os.getenv("RISK_SCOUT_MODEL", "Qwen/Qwen2.5-Coder-32B-Instruct")
         self.model = InferenceClientModel(model_id=model_id)
         
         self.agent = CodeAgent(

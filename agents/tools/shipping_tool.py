@@ -15,6 +15,13 @@ class ShippingTool(Tool):
     output_type = "object"
     
     MAJOR_PORTS = {
+        # Indian Ports
+        "Mumbai": (18.9446, 72.8223),
+        "Chennai": (13.0827, 80.2707),
+        "Mundra": (22.8389, 69.7452),
+        "Kolkata": (22.5726, 88.3639),
+        "Cochin": (9.9312, 76.2673),
+        "JNPT": (18.9500, 72.9500), # Jawaharlal Nehru Port Trust
         "Singapore": (1.3521, 103.8198),
         "Rotterdam": (51.9225, 4.0500),
         "Shanghai": (30.0728, 120.5954),
