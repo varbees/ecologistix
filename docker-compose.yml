@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: ecologistix-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password}
+      POSTGRES_DB: ${DB_NAME:-ecologistix}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/internal/db/schemas:/docker-entrypoint-initdb.d
+    networks:
+      - eco-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecologistix-redis
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - eco-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  eco-net:
+    driver: bridge
