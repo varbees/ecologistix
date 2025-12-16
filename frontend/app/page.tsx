@@ -1,63 +1,67 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+import useSWR from 'swr';
+import { Ship, AlertTriangle, Leaf, Activity } from 'lucide-react';
+import AgentConsole from '@/components/AgentConsole';
+
+// Map must be client-side only
+const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
+export default function Dashboard() {
+  const { data: shipments, error } = useSWR('/api/shipments', fetcher, { refreshInterval: 2000 });
+
+  const loading = !shipments && !error;
+  const activeCount = shipments?.length || 0;
+  const riskCount = shipments?.filter((s:any) => s.status === 'AT_RISK' || s.risk_score > 0.5).length || 0;
+  const nonCompliantCount = shipments?.filter((s:any) => s.compliance_status === 'NON_COMPLIANT').length || 0;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+      {/* Header */}
+      <header className="h-16 border-b border-gray-800 flex items-center px-6 gap-4 bg-gray-950">
+        <div className="font-bold text-xl tracking-tight text-blue-500">EcoLogistix AI</div>
+        <div className="flex-1"></div>
+        <div className="flex gap-4 text-sm font-mono">
+           <div className="flex items-center gap-2">
+             <Ship className="w-4 h-4 text-blue-400" /> 
+             <span>{activeCount} Active</span>
+           </div>
+           <div className="flex items-center gap-2">
+             <AlertTriangle className="w-4 h-4 text-red-400" /> 
+             <span>{riskCount} At Risk</span>
+           </div>
+           <div className="flex items-center gap-2">
+             <Leaf className="w-4 h-4 text-green-400" /> 
+             <span>{nonCompliantCount} Flags</span>
+           </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 flex overflow-hidden">
+        {/* Map Area */}
+        <div className="flex-1 relative bg-gray-800">
+           {loading ? (
+             <div className="flex items-center justify-center h-full">Loading System...</div>
+           ) : (
+             <MapView shipments={shipments || []} />
+           )}
+        </div>
+
+        {/* Sidebar Console */}
+        <div className="w-96 border-l border-gray-800 bg-gray-950 flex flex-col">
+            <div className="p-4 border-b border-gray-800">
+               <h2 className="font-semibold flex items-center gap-2">
+                 <Activity className="w-4 h-4" /> Agent Operations
+               </h2>
+            </div>
+            <div className="flex-1 p-2 overflow-hidden">
+                <AgentConsole shipments={shipments || []} />
+            </div>
         </div>
       </main>
     </div>
