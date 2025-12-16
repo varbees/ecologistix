@@ -1,0 +1,41 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.log
+.env
+
+# Go
+backend/bin/
+backend/vendor/
+backend/go.sum
+backend/coverage.txt
+backend/profile.out
+
+# Python
+agents/__pycache__/
+agents/*.py[cod]
+agents/*$py.class
+agents/venv/
+agents/.venv/
+agents/.pytest_cache/
+agents/target/
+
+# Node/Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.pnpm-debug.log*
+
+# Database
+pgdata/
+redisdata/
+
+# Docs
+/docs
