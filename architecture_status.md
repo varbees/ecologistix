@@ -1,6 +1,6 @@
 # EcoLogistix Architecture Status
 
-- **Current Phase**: Phase 2 - Orchestration (Week 5)
+- **Current Phase**: Phase 2 - Route Planning (Week 6)
 - **Status**: 🟢 On Track
 
 ## 1. System Overview
